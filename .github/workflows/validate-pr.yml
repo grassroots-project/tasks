@@ -28,8 +28,6 @@ jobs:
             echo "❌ 必须填写 PR 描述模板"
             exit 1
           fi
-
-          # 检查必要字段
           if [[ ! "$BODY" =~ ## 变更类型 ]] || [[ ! "$BODY" =~ ## 变更内容 ]] || [[ ! "$BODY" =~ ## 变更原因 ]]; then
             echo "❌ PR 描述必须包含：变更类型、变更内容、变更原因"
             exit 1
@@ -37,7 +35,6 @@ jobs:
           echo "✅ PR 模板填写完整"
 
       - name: Validate data/people.md
-        if: contains(github.event.pull_request.changed_files, 'data/people.md')
         run: |
           python3 -c "
 import re
@@ -68,9 +65,9 @@ for member in members:
 
 print(f'✅ people.md 格式正确（{len(members)} 个成员）')
 "
+        if: github.event.pull_request.changed_files != null
 
       - name: Validate data/resources.md
-        if: contains(github.event.pull_request.changed_files, 'data/resources.md')
         run: |
           python3 -c "
 import re
@@ -101,6 +98,7 @@ for resource in resources:
 
 print(f'✅ resources.md 格式正确（{len(resources)} 个资源）')
 "
+        if: github.event.pull_request.changed_files != null
 
       - name: Comment on Failure
         if: failure()
