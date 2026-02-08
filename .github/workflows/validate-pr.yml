@@ -39,74 +39,68 @@ jobs:
       - name: Validate data/people.md
         if: contains(github.event.pull_request.changed_files, 'data/people.md')
         run: |
-          python3 << 'EOF'
-          import re
-          import sys
+          python3 -c "
+import re
+import sys
 
-          with open('data/people.md', 'r') as f:
-              content = f.read()
+with open('data/people.md', 'r') as f:
+    content = f.read()
 
-          # 检查基本结构
-          if '# 人才库' not in content:
-              print("❌ people.md 缺少标题 '# 人才库'")
-              sys.exit(1)
+if '# 人才库' not in content:
+    print('❌ people.md 缺少标题 # 人才库')
+    sys.exit(1)
 
-          if '## 现有成员' not in content:
-              print("❌ people.md 缺少 '## 现有成员' 章节")
-              sys.exit(1)
+if '## 现有成员' not in content:
+    print('❌ people.md 缺少 ## 现有成员 章节')
+    sys.exit(1)
 
-          # 检查成员格式
-          members = re.findall(r'### (.+)', content)
-          if not members:
-              print("❌ people.md 没有找到任何成员")
-              sys.exit(1)
+members = re.findall(r'### (.+)', content)
+if not members:
+    print('❌ people.md 没有找到任何成员')
+    sys.exit(1)
 
-          for member in members:
-              # 检查必要字段
-              pattern = rf'### {member}.*?- \*\*加入时间\*\*：.*?- \*\*技能标签\*\*：.*?- \*\*时间承诺\*\*：.*?- \*\*当前任务\*\*：.*?- \*\*历史贡献\*\*：'
-              if not re.search(pattern, content, re.DOTALL):
-                  print(f"❌ 成员 '{member}' 缺少必要字段")
-                  print("必要字段：加入时间、技能标签、时间承诺、当前任务、历史贡献")
-                  sys.exit(1)
+for member in members:
+    pattern = rf'### {member}.*?- \*\*加入时间\*\*：.*?- \*\*技能标签\*\*：.*?- \*\*时间承诺\*\*：.*?- \*\*当前任务\*\*：.*?- \*\*历史贡献\*\*：'
+    if not re.search(pattern, content, re.DOTALL):
+        print(f'❌ 成员 {member} 缺少必要字段')
+        print('必要字段：加入时间、技能标签、时间承诺、当前任务、历史贡献')
+        sys.exit(1)
 
-          print(f"✅ people.md 格式正确（{len(members)} 个成员）")
-          EOF
+print(f'✅ people.md 格式正确（{len(members)} 个成员）')
+"
 
       - name: Validate data/resources.md
         if: contains(github.event.pull_request.changed_files, 'data/resources.md')
         run: |
-          python3 << 'EOF'
-          import re
-          import sys
+          python3 -c "
+import re
+import sys
 
-          with open('data/resources.md', 'r') as f:
-              content = f.read()
+with open('data/resources.md', 'r') as f:
+    content = f.read()
 
-          # 检查基本结构
-          if '# 资源池' not in content:
-              print("❌ resources.md 缺少标题 '# 资源池'")
-              sys.exit(1)
+if '# 资源池' not in content:
+    print('❌ resources.md 缺少标题 # 资源池')
+    sys.exit(1)
 
-          if '## 资源列表' not in content:
-              print("❌ resources.md 缺少 '## 资源列表' 章节")
-              sys.exit(1)
+if '## 资源列表' not in content:
+    print('❌ resources.md 缺少 ## 资源列表 章节')
+    sys.exit(1)
 
-          # 检查资源格式
-          resources = re.findall(r'### (.+)', content)
-          if not resources:
-              print("❌ resources.md 没有找到任何资源")
-              sys.exit(1)
+resources = re.findall(r'### (.+)', content)
+if not resources:
+    print('❌ resources.md 没有找到任何资源')
+    sys.exit(1)
 
-          for resource in resources:
-              # 检查必要字段
-              pattern = rf'### {resource}.*?- \*\*类型\*\*：.*?- \*\*描述\*\*：.*?- \*\*当前状态\*\*：.*?- \*\*负责人\*\*：'
-              if not re.search(pattern, content, re.DOTALL):
-                  print(f"❌ 资源 '{resource}' 缺少必要字段")
-                  print("必要字段：类型、描述、当前状态、负责人")
-                  sys.exit(1)
+for resource in resources:
+    pattern = rf'### {resource}.*?- \*\*类型\*\*：.*?- \*\*描述\*\*：.*?- \*\*当前状态\*\*：.*?- \*\*负责人\*\*：'
+    if not re.search(pattern, content, re.DOTALL):
+        print(f'❌ 资源 {resource} 缺少必要字段')
+        print('必要字段：类型、描述、当前状态、负责人')
+        sys.exit(1)
 
-          print(f"✅ resources.md 格式正确（{len(resources)} 个资源）")
-          EOF
+print(f'✅ resources.md 格式正确（{len(resources)} 个资源）')
+"
 
       - name: Comment on Failure
         if: failure()
