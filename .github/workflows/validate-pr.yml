@@ -20,6 +20,7 @@ jobs:
             exit 1
           fi
           echo "✅ PR 标题前缀正确"
+        if: github.event_name == 'pull_request'
 
       - name: Check PR Template
         run: |
@@ -33,6 +34,7 @@ jobs:
             exit 1
           fi
           echo "✅ PR 模板填写完整"
+        if: github.event_name == 'pull_request'
 
       - name: Validate data/people.md
         run: |
@@ -65,7 +67,7 @@ for member in members:
 
 print(f'✅ people.md 格式正确（{len(members)} 个成员）')
 "
-        if: github.event.pull_request.changed_files != null
+        if: github.event_name == 'pull_request'
 
       - name: Validate data/resources.md
         run: |
@@ -98,10 +100,10 @@ for resource in resources:
 
 print(f'✅ resources.md 格式正确（{len(resources)} 个资源）')
 "
-        if: github.event.pull_request.changed_files != null
+        if: github.event_name == 'pull_request'
 
       - name: Comment on Failure
-        if: failure()
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
