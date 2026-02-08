@@ -38,7 +38,7 @@ jobs:
 
       - name: Validate data/people.md
         run: |
-          python3 -c "
+          python3 << 'PYEOF'
 import re
 import sys
 
@@ -59,19 +59,19 @@ if not members:
     sys.exit(1)
 
 for member in members:
-    pattern = rf'### {member}.*?- \*\*加入时间\*\*：.*?- \*\*技能标签\*\*：.*?- \*\*时间承诺\*\*：.*?- \*\*当前任务\*\*：.*?- \*\*历史贡献\*\*：'
+    pattern = r'### ' + member + r'.*?- \*\*加入时间\*\*：.*?- \*\*技能标签\*\*：.*?- \*\*时间承诺\*\*：.*?- \*\*当前任务\*\*：.*?- \*\*历史贡献\*\*：'
     if not re.search(pattern, content, re.DOTALL):
-        print(f'❌ 成员 {member} 缺少必要字段')
+        print('❌ 成员 ' + member + ' 缺少必要字段')
         print('必要字段：加入时间、技能标签、时间承诺、当前任务、历史贡献')
         sys.exit(1)
 
-print(f'✅ people.md 格式正确（{len(members)} 个成员）')
-"
+print('✅ people.md 格式正确（' + str(len(members)) + ' 个成员）')
+PYEOF
         if: github.event_name == 'pull_request'
 
       - name: Validate data/resources.md
         run: |
-          python3 -c "
+          python3 << 'PYEOF'
 import re
 import sys
 
@@ -92,14 +92,14 @@ if not resources:
     sys.exit(1)
 
 for resource in resources:
-    pattern = rf'### {resource}.*?- \*\*类型\*\*：.*?- \*\*描述\*\*：.*?- \*\*当前状态\*\*：.*?- \*\*负责人\*\*：'
+    pattern = r'### ' + resource + r'.*?- \*\*类型\*\*：.*?- \*\*描述\*\*：.*?- \*\*当前状态\*\*：.*?- \*\*负责人\*\*：'
     if not re.search(pattern, content, re.DOTALL):
-        print(f'❌ 资源 {resource} 缺少必要字段')
+        print('❌ 资源 ' + resource + ' 缺少必要字段')
         print('必要字段：类型、描述、当前状态、负责人')
         sys.exit(1)
 
-print(f'✅ resources.md 格式正确（{len(resources)} 个资源）')
-"
+print('✅ resources.md 格式正确（' + str(len(resources)) + ' 个资源）')
+PYEOF
         if: github.event_name == 'pull_request'
 
       - name: Comment on Failure
