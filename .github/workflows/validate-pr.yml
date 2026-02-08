@@ -1,0 +1,121 @@
+name: Validate PR
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PR Title Prefix
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          if [[ ! "$TITLE" =~ ^\[成员\]|^\[资源\]|^\[任务\]|^\[其他\] ]]; then
+            echo "❌ PR 标题必须包含前缀：[成员]、[资源]、[任务] 或 [其他]"
+            echo "示例：[成员] 添加张三到人才库"
+            exit 1
+          fi
+          echo "✅ PR 标题前缀正确"
+
+      - name: Check PR Template
+        run: |
+          BODY="${{ github.event.pull_request.body }}"
+          if [[ -z "$BODY" ]] || [[ "$BODY" == *"<!--"* ]]; then
+            echo "❌ 必须填写 PR 描述模板"
+            exit 1
+          fi
+
+          # 检查必要字段
+          if [[ ! "$BODY" =~ ## 变更类型 ]] || [[ ! "$BODY" =~ ## 变更内容 ]] || [[ ! "$BODY" =~ ## 变更原因 ]]; then
+            echo "❌ PR 描述必须包含：变更类型、变更内容、变更原因"
+            exit 1
+          fi
+          echo "✅ PR 模板填写完整"
+
+      - name: Validate data/people.md
+        if: contains(github.event.pull_request.changed_files, 'data/people.md')
+        run: |
+          python3 << 'EOF'
+          import re
+          import sys
+
+          with open('data/people.md', 'r') as f:
+              content = f.read()
+
+          # 检查基本结构
+          if '# 人才库' not in content:
+              print("❌ people.md 缺少标题 '# 人才库'")
+              sys.exit(1)
+
+          if '## 现有成员' not in content:
+              print("❌ people.md 缺少 '## 现有成员' 章节")
+              sys.exit(1)
+
+          # 检查成员格式
+          members = re.findall(r'### (.+)', content)
+          if not members:
+              print("❌ people.md 没有找到任何成员")
+              sys.exit(1)
+
+          for member in members:
+              # 检查必要字段
+              pattern = rf'### {member}.*?- \*\*加入时间\*\*：.*?- \*\*技能标签\*\*：.*?- \*\*时间承诺\*\*：.*?- \*\*当前任务\*\*：.*?- \*\*历史贡献\*\*：'
+              if not re.search(pattern, content, re.DOTALL):
+                  print(f"❌ 成员 '{member}' 缺少必要字段")
+                  print("必要字段：加入时间、技能标签、时间承诺、当前任务、历史贡献")
+                  sys.exit(1)
+
+          print(f"✅ people.md 格式正确（{len(members)} 个成员）")
+          EOF
+
+      - name: Validate data/resources.md
+        if: contains(github.event.pull_request.changed_files, 'data/resources.md')
+        run: |
+          python3 << 'EOF'
+          import re
+          import sys
+
+          with open('data/resources.md', 'r') as f:
+              content = f.read()
+
+          # 检查基本结构
+          if '# 资源池' not in content:
+              print("❌ resources.md 缺少标题 '# 资源池'")
+              sys.exit(1)
+
+          if '## 资源列表' not in content:
+              print("❌ resources.md 缺少 '## 资源列表' 章节")
+              sys.exit(1)
+
+          # 检查资源格式
+          resources = re.findall(r'### (.+)', content)
+          if not resources:
+              print("❌ resources.md 没有找到任何资源")
+              sys.exit(1)
+
+          for resource in resources:
+              # 检查必要字段
+              pattern = rf'### {resource}.*?- \*\*类型\*\*：.*?- \*\*描述\*\*：.*?- \*\*当前状态\*\*：.*?- \*\*负责人\*\*：'
+              if not re.search(pattern, content, re.DOTALL):
+                  print(f"❌ 资源 '{resource}' 缺少必要字段")
+                  print("必要字段：类型、描述、当前状态、负责人")
+                  sys.exit(1)
+
+          print(f"✅ resources.md 格式正确（{len(resources)} 个资源）")
+          EOF
+
+      - name: Comment on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ PR 验证失败\n\n请检查上述错误信息并修复后重新提交。`
+            })
