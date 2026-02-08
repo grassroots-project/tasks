@@ -28,8 +28,16 @@ jobs:
             echo "❌ 必须填写 PR 描述模板"
             exit 1
           fi
-          if [[ ! "$BODY" =~ ## 变更类型 ]] || [[ ! "$BODY" =~ ## 变更内容 ]] || [[ ! "$BODY" =~ ## 变更原因 ]]; then
-            echo "❌ PR 描述必须包含：变更类型、变更内容、变更原因"
+          if ! echo "$BODY" | grep -q "## 变更类型"; then
+            echo "❌ PR 描述必须包含：变更类型"
+            exit 1
+          fi
+          if ! echo "$BODY" | grep -q "## 变更内容"; then
+            echo "❌ PR 描述必须包含：变更内容"
+            exit 1
+          fi
+          if ! echo "$BODY" | grep -q "## 变更原因"; then
+            echo "❌ PR 描述必须包含：变更原因"
             exit 1
           fi
           echo "✅ PR 模板填写完整"
