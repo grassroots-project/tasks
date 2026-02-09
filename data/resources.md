@@ -11,7 +11,7 @@
 - **当前状态**：可用
 - **负责人**：Tang
 - **使用说明**：访问 https://github.com/grassroots-project/docs
-- **链接**：https://grassroots-project.github.io/docs/
+- **链接**：https://github.com/grassroots-project/docs
 
 ---
 
@@ -29,8 +29,8 @@
 - **描述**：项目展示和任务看板
 - **当前状态**：可用
 - **负责人**：Tang
-- **使用说明**：访问 https://grassroots-project.github.io/website/
-- **链接**：https://grassroots-project.github.io/website/
+- **使用说明**：访问 https://www.grassroots-project.app/
+- **链接**：https://www.grassroots-project.app/
 
 ---
 
