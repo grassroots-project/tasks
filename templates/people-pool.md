@@ -1,4 +1,4 @@
-# 人池 - Grassroots Project
+# 人才库 - Grassroots Project
 
 这是一个开放的协作场域，所有人都可以加入。
 
