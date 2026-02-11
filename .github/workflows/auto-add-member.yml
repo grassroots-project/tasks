@@ -33,6 +33,7 @@ jobs:
             }
 
             const name = parseField(body, '昵称/名字');
+            const ghUser = parseField(body, 'GitHub 用户名');
             const skills = parseField(body, '技能标签');
             const time = parseField(body, '每周时间承诺');
 
@@ -47,7 +48,7 @@ jobs:
             }
 
             const today = new Date().toISOString().split('T')[0];
-            const entry = `\n### ${name}\n- **加入时间**：${today}\n- **技能标签**：${skills}\n- **时间承诺**：每周 ${time}\n- **当前任务**：-\n- **历史贡献**：-\n`;
+            const entry = `\n### ${name}\n- **GitHub**：${ghUser || '-'}\n- **加入时间**：${today}\n- **技能标签**：${skills}\n- **时间承诺**：每周 ${time}\n- **当前任务**：-\n- **历史贡献**：-\n`;
 
             // Create branch
             const branchName = `member/add-${name.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g, '-')}`;

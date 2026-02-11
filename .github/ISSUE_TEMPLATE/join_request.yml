@@ -13,6 +13,15 @@ body:
       required: true
 
   - type: input
+    id: github
+    attributes:
+      label: GitHub 用户名
+      description: 你的 GitHub 用户名（用于任务状态自动同步）
+      placeholder: 例如：zhangsan
+    validations:
+      required: true
+
+  - type: input
     id: skills
     attributes:
       label: 技能标签
