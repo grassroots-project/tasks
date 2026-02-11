@@ -58,3 +58,6 @@
 - name: "使用资源"
   color: "d4c5f9"
   description: "申请使用资源"
+- name: "更新资源"
+  color: "f9d0c4"
+  description: "更新资源状态"

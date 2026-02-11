@@ -1,0 +1,33 @@
+name: 更新资源状态
+description: 更新资源库中某个资源的状态
+title: "[更新资源] "
+labels: ["更新资源"]
+body:
+  - type: input
+    id: resource
+    attributes:
+      label: 资源名称
+      description: 需与资源库中的名称完全一致
+      placeholder: 例如：AI
+    validations:
+      required: true
+
+  - type: dropdown
+    id: new_status
+    attributes:
+      label: 新状态
+      options:
+        - 可用
+        - 已占用
+        - 待规划
+        - 暂停
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: 更新原因
+      placeholder: 为什么要更新状态
+    validations:
+      required: true

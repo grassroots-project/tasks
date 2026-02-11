@@ -1,0 +1,87 @@
+name: Auto Update Resource Status
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  update-resource:
+    if: github.event.label.name == 'approved' && contains(github.event.issue.labels.*.name, '更新资源')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update resource status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+            const body = issue.body;
+
+            function parseField(body, label) {
+              const regex = new RegExp(`### ${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n\\n([\\s\\S]*?)(?=\\n\\n###|$)`);
+              const match = body.match(regex);
+              return match ? match[1].trim() : '';
+            }
+
+            const resource = parseField(body, '资源名称');
+            const newStatus = parseField(body, '新状态');
+
+            if (!resource || !newStatus) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '❌ 无法提取资源名称或新状态，请检查 Issue 格式。'
+              });
+              return;
+            }
+
+            let content = fs.readFileSync('data/resources.md', 'utf8');
+
+            // Find the resource and update its status
+            const pattern = new RegExp(
+              `(### ${resource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?\\*\\*当前状态\\*\\*：)([^\\n]+)`,
+              'm'
+            );
+
+            if (!pattern.test(content)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `❌ 未找到资源「${resource}」，请确认名称与资源库一致。`
+              });
+              return;
+            }
+
+            content = content.replace(pattern, `$1${newStatus}`);
+            fs.writeFileSync('data/resources.md', content, 'utf8');
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/resources.md
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "[资源] 更新资源状态（Issue #${{ github.event.issue.number }}）"
+          git push
+
+      - name: Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: '✅ 资源状态已更新。'
+            });
