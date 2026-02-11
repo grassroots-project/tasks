@@ -1,0 +1,71 @@
+name: 申请加入
+description: 申请加入 Grassroots Project 人才库
+title: "[申请加入] "
+labels: ["申请加入"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: 昵称/名字
+      description: 你希望在人才库中显示的名字
+      placeholder: 例如：张三
+    validations:
+      required: true
+
+  - type: input
+    id: skills
+    attributes:
+      label: 技能标签
+      description: 你的技能，用逗号分隔
+      placeholder: 例如：写作, 设计, Python
+    validations:
+      required: true
+
+  - type: input
+    id: time
+    attributes:
+      label: 每周时间承诺
+      description: 每周愿意投入的小时数
+      placeholder: 例如：5h
+    validations:
+      required: true
+
+  - type: textarea
+    id: q1
+    attributes:
+      label: 问题1：如果参与三个月没有任何可见回报，你还会继续吗？
+      description: 请简单说明你的想法
+    validations:
+      required: true
+
+  - type: textarea
+    id: q2
+    attributes:
+      label: 问题2：这里没有明确任务分配，你会主动找事情做吗？
+      description: 请举一个你主动做事情的例子
+    validations:
+      required: true
+
+  - type: textarea
+    id: q3
+    attributes:
+      label: 问题3：如果项目方向中途调整，你能接受吗？
+      description: 请说说你对不确定性的态度
+    validations:
+      required: true
+
+  - type: textarea
+    id: q4
+    attributes:
+      label: 问题4：每周你愿意投入多少时间？
+      description: 请给出一个真实的数字
+    validations:
+      required: true
+
+  - type: textarea
+    id: q5
+    attributes:
+      label: 问题5：你会什么？想学什么？
+      description: 技能标签 + 学习方向
+    validations:
+      required: true

@@ -44,3 +44,11 @@
 - name: "社交"
   color: "bfd4f2"
   description: "社交、人脉"
+
+# 申请流程标签
+- name: "申请加入"
+  color: "c5def5"
+  description: "新成员申请加入"
+- name: "approved"
+  color: "0e8a16"
+  description: "申请已通过审核"
