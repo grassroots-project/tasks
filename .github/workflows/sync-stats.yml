@@ -1,0 +1,100 @@
+name: Sync Stats
+
+on:
+  issues:
+    types: [labeled, unlabeled, assigned, unassigned]
+  push:
+    branches: [main]
+    paths: ['data/people.md']
+
+jobs:
+  sync-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Rebuild stats tables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Fetch all task issues (exclude 人才库/资源池/申请加入)
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            const skipLabels = ['人才库', '资源池', '申请加入', 'approved'];
+            const tasks = issues.filter(i =>
+              !i.pull_request &&
+              !i.labels.some(l => skipLabels.includes(l.name))
+            );
+
+            // Read people.md
+            let content = fs.readFileSync('data/people.md', 'utf8');
+
+            // Parse members from content
+            const memberBlocks = content.split(/(?=^### )/m).filter(b => b.startsWith('### '));
+            const members = memberBlocks.map(block => {
+              const nameMatch = block.match(/^### (.+)/);
+              const currentMatch = block.match(/\*\*当前任务\*\*：(.+)/);
+              const historyMatch = block.match(/\*\*历史贡献\*\*：(.+)/);
+              return {
+                name: nameMatch ? nameMatch[1].trim() : '',
+                current: currentMatch ? currentMatch[1].trim() : '-',
+                history: historyMatch ? historyMatch[1].trim() : '-'
+              };
+            });
+
+            // Build 成员统计 table
+            let memberTable = '| 成员 | 当前任务 | 历史贡献 |\n|------|---------|---------|';
+            for (const m of members) {
+              memberTable += `\n| ${m.name} | ${m.current} | ${m.history} |`;
+            }
+
+            // Build 任务参与情况 table
+            const statusEmoji = { '待领': '⬜', '进行中': '🔄', '已完成': '✅' };
+            let taskTable = '| 任务 | 成员 | 状态 |\n|------|------|------|';
+            for (const t of tasks.sort((a, b) => a.number - b.number)) {
+              const labels = t.labels.map(l => l.name);
+              let status = '⬜ 待领';
+              if (labels.includes('已完成')) status = '✅ 已完成';
+              else if (labels.includes('进行中')) status = '🔄 进行中';
+              const assignee = t.assignees.length > 0
+                ? t.assignees.map(a => a.login).join(', ')
+                : '-';
+              taskTable += `\n| #${t.number} ${t.title.replace(/\[TASK\]\s*/, '')} | ${assignee} | ${status} |`;
+            }
+
+            // Replace tables in content
+            const statsRegex = /(### 成员统计\s*\n)[\s\S]*?(?=\n### 任务参与情况)/;
+            const taskRegex = /(### 任务参与情况\s*\n)[\s\S]*?(?=\n---)/;
+
+            if (content.match(statsRegex)) {
+              content = content.replace(statsRegex, `### 成员统计\n\n${memberTable}\n\n`);
+            }
+            if (content.match(taskRegex)) {
+              content = content.replace(taskRegex, `### 任务参与情况\n\n${taskTable}\n`);
+            }
+
+            // Write back
+            fs.writeFileSync('data/people.md', content, 'utf8');
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/people.md
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "[同步] 自动更新成员统计和任务参与情况"
+          git push
