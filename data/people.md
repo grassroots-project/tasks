@@ -17,15 +17,6 @@
 
 ---
 
-## 如何加入
-
-1. **阅读项目介绍**：https://www.grassroots-project.app/pages/about.html
-2. **回答筛选问卷**：https://www.grassroots-project.app/pages/join.html
-3. **发送答案到**：xiaoping.tang@gmail.com
-4. **回复后**，创建 PR 添加你的信息到成员列表
-
----
-
 
 
 ## 技能标签说明
