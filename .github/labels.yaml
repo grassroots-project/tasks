@@ -52,3 +52,6 @@
 - name: "approved"
   color: "0e8a16"
   description: "申请已通过审核"
+- name: "添加资源"
+  color: "c5def5"
+  description: "申请添加新资源"

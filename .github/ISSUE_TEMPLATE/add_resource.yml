@@ -1,0 +1,70 @@
+name: 添加资源
+description: 申请添加新资源到资源库
+title: "[添加资源] "
+labels: ["添加资源"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: 资源名称
+      placeholder: 例如：Figma 设计工具
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: 资源类型
+      options:
+        - 比特币/资金
+        - 知识
+        - 工具
+        - 知识/工具
+        - 人力
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 描述
+      placeholder: 这个资源是什么，用于什么
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: 当前状态
+      options:
+        - 可用
+        - 待规划
+        - 已占用
+        - 暂停
+    validations:
+      required: true
+
+  - type: input
+    id: owner
+    attributes:
+      label: 负责人
+      placeholder: 例如：Tang
+    validations:
+      required: true
+
+  - type: input
+    id: instructions
+    attributes:
+      label: 使用说明
+      placeholder: 如何使用这个资源
+    validations:
+      required: false
+
+  - type: input
+    id: link
+    attributes:
+      label: 链接
+      placeholder: 相关链接（没有填 -）
+    validations:
+      required: false
