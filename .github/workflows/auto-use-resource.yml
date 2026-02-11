@@ -1,0 +1,91 @@
+name: Auto Use Resource
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  use-resource:
+    if: github.event.label.name == 'approved' && contains(github.event.issue.labels.*.name, '使用资源')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update resource usage record
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+            const body = issue.body;
+
+            function parseField(body, label) {
+              const regex = new RegExp(`### ${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n\\n([\\s\\S]*?)(?=\\n\\n###|$)`);
+              const match = body.match(regex);
+              return match ? match[1].trim() : '';
+            }
+
+            const resource = parseField(body, '资源名称');
+            const user = parseField(body, '使用人');
+            const purpose = parseField(body, '用途');
+            const duration = parseField(body, '预期使用时间');
+            const today = new Date().toISOString().split('T')[0];
+
+            if (!resource || !user) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '❌ 无法提取资源名称或使用人，请检查 Issue 格式。'
+              });
+              return;
+            }
+
+            // Update resources.md - add to 资源使用记录
+            let content = fs.readFileSync('data/resources.md', 'utf8');
+
+            // Find the usage record table and add a row
+            const recordHeader = '| 资源 | 使用人 | 用途 | 时长/用量 | 状态 |';
+            const emptyRow = '| - | - | - | - | - |';
+            const newRow = `| ${resource} | ${user} | ${purpose} | ${duration} | 使用中 |`;
+
+            if (content.includes(emptyRow)) {
+              content = content.replace(emptyRow, newRow);
+            } else if (content.includes(recordHeader)) {
+              content = content.replace(recordHeader + '\n|', recordHeader + '\n' + newRow + '\n|');
+            }
+
+            // Update resource status to 已占用 (if it was 可用)
+            const resourceBlock = new RegExp(`(### ${resource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?)(\\*\\*当前状态\\*\\*：)(可用)`, 'm');
+            content = content.replace(resourceBlock, `$1$2已占用（${user}）`);
+
+            fs.writeFileSync('data/resources.md', content, 'utf8');
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/resources.md
+          git diff --cached --quiet && echo "No changes" && exit 0
+          RESOURCE=$(echo '${{ github.event.issue.body }}' | grep -A2 "### 资源名称" | tail -1 | xargs)
+          USER=$(echo '${{ github.event.issue.body }}' | grep -A2 "### 使用人" | tail -1 | xargs)
+          git commit -m "[资源] ${USER} 使用 ${RESOURCE}"
+          git push
+
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: '✅ 资源使用已记录，资源状态已更新。使用完毕后请关闭此 Issue。'
+            });

@@ -1,0 +1,65 @@
+name: Auto Return Resource
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  return-resource:
+    if: contains(github.event.issue.labels.*.name, '使用资源')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Restore resource status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+            const body = issue.body;
+
+            function parseField(body, label) {
+              const regex = new RegExp(`### ${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n\\n([\\s\\S]*?)(?=\\n\\n###|$)`);
+              const match = body.match(regex);
+              return match ? match[1].trim() : '';
+            }
+
+            const resource = parseField(body, '资源名称');
+            const user = parseField(body, '使用人');
+
+            if (!resource) return;
+
+            let content = fs.readFileSync('data/resources.md', 'utf8');
+
+            // Restore status from 已占用 to 可用
+            const occupiedPattern = new RegExp(
+              `(### ${resource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?)(\\*\\*当前状态\\*\\*：)(已占用[^\\n]*)`,
+              'm'
+            );
+            content = content.replace(occupiedPattern, `$1$2可用`);
+
+            // Update usage record: 使用中 → 已归还
+            const usagePattern = new RegExp(
+              `(\\| ${resource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\| ${user.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\|[^|]*\\|[^|]*\\| )使用中( \\|)`,
+              'm'
+            );
+            content = content.replace(usagePattern, `$1已归还$2`);
+
+            fs.writeFileSync('data/resources.md', content, 'utf8');
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/resources.md
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "[资源] 归还资源（Issue #${{ github.event.issue.number }}）"
+          git push

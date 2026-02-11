@@ -55,3 +55,6 @@
 - name: "添加资源"
   color: "c5def5"
   description: "申请添加新资源"
+- name: "使用资源"
+  color: "d4c5f9"
+  description: "申请使用资源"

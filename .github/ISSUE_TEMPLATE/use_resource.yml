@@ -1,0 +1,38 @@
+name: 申请使用资源
+description: 申请使用资源库中的资源
+title: "[使用资源] "
+labels: ["使用资源"]
+body:
+  - type: input
+    id: resource
+    attributes:
+      label: 资源名称
+      description: 要使用哪个资源（需与资源库中的名称一致）
+      placeholder: 例如：AI
+    validations:
+      required: true
+
+  - type: input
+    id: user
+    attributes:
+      label: 使用人
+      description: 你的名字（需与人才库一致）
+      placeholder: 例如：Tang
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 用途
+      placeholder: 用来做什么
+    validations:
+      required: true
+
+  - type: input
+    id: duration
+    attributes:
+      label: 预期使用时间
+      placeholder: 例如：1小时、1周、长期
+    validations:
+      required: true
