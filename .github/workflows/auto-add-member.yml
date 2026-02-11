@@ -84,7 +84,15 @@ jobs:
             });
 
             const currentContent = Buffer.from(file.data.content, 'base64').toString('utf8');
-            const newContent = currentContent.trimEnd() + '\n' + entry;
+            // Insert before "## 如何加入" section (under "## 现有成员")
+            const marker = '\n---\n\n## 如何加入';
+            let newContent;
+            if (currentContent.includes(marker)) {
+              newContent = currentContent.replace(marker, '\n' + entry + marker);
+            } else {
+              // Fallback: append to end
+              newContent = currentContent.trimEnd() + '\n' + entry;
+            }
 
             // Update file on branch
             await github.rest.repos.createOrUpdateFileContents({
